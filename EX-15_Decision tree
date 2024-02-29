@@ -1,14 +1,48 @@
-print("Decision Tree ")
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
-iris = load_iris()
-X = iris.data
-y = iris.target
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-clf = DecisionTreeClassifier()
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy: {accuracy:.2f}")
+from sklearn import tree
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import numpy as np
+
+# Sample Training data
+features = [
+    [1, 'youth', 'high', 'no', 'fair'],
+    [2, 'middle_aged', 'medium', 'no', 'excellent'],
+    [3, 'senior', 'low', 'yes', 'fair'],
+    # Add more rows for the rest of your training data
+]
+
+labels = ['no', 'yes', 'yes']  # Make sure to add labels for each row in features
+
+# Ensure that features and labels have the same number of samples
+if len(features) != len(labels):
+    raise ValueError("Number of samples in features and labels must be the same.")
+
+# Extract categorical columns
+categorical_columns = [1, 2, 3, 4]
+
+# Define a column transformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', OneHotEncoder(drop='first'), categorical_columns)
+    ],
+    remainder='passthrough'
+)
+
+# Create a pipeline with the column transformer and the decision tree classifier
+clf = Pipeline([
+    ('preprocessor', preprocessor),
+    ('classifier', tree.DecisionTreeClassifier())
+])
+
+# Fit the model
+clf.fit(features, labels)
+
+# Print decision tree
+tree.plot_tree(clf['classifier'], feature_names=['RID', 'age', 'income', 'student', 'credit_rating'], class_names=['no', 'yes'], filled=True)
+import matplotlib.pyplot as plt
+
+# Visualize the decision tree
+plt.figure(figsize=(10, 7))
+tree.plot_tree(clf['classifier'], feature_names=['RID', 'age', 'income', 'student', 'credit_rating'], class_names=['no', 'yes'], filled=True)
+plt.show()
